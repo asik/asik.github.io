@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html><head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Why encapsulation fails - Asik Blog</title><meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<meta property="og:description" content="And how pure functions can help" />
+	<meta name="twitter:description" content="And how pure functions can help" />
+	<meta name="description" content="And how pure functions can help" />
+	<meta name="description" content="And how pure functions can help" />
+
+	<meta property="og:title" content="Why encapsulation fails | Asik Blog" />
+	<meta name="twitter:title" content="Why encapsulation fails | Asik Blog" />
+
+	<meta property="og:image" content=""/>
+	<meta itemprop="name" content="Why encapsulation fails | Asik Blog" />
+	<meta name="application-name" content="Why encapsulation fails | Asik Blog" />
+	<meta property="og:site_name" content="" />
+	<meta property="og:title" content="Why encapsulation fails" />
+<meta property="og:description" content="And how pure functions can help" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://example.org/posts/real-world-problems-with-oo/" />
+<meta property="article:published_time" content="2020-09-15T00:00:00+00:00" />
+<meta property="article:modified_time" content="2020-09-15T00:00:00+00:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Why encapsulation fails"/>
+<meta name="twitter:description" content="And how pure functions can help"/>
+
+	<link href="https://fonts.googleapis.com/css2?family=Fira+Sans&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" media="screen" href="http://example.org/css/main.css" />
+</head><body>
+        <div class="content"><header>
+	<div class="main">
+		<a href="http://example.org/">Asik Blog</a>
+	</div>
+	<nav>
+		
+	</nav>
+</header>
+
+<main>
+	<article>
+		<div class="title">
+			<h1 class="title">Why encapsulation fails</h1>
+			<div class="meta">Posted on Sep 15, 2020</div>
+		</div>
+		
+
+		<section class="body">
+			<p>One promise of OOP is encapsulation. In its simplest definition, encapsulation is restricting access to an object&rsquo;s internal state. Encapsulation promises more than this: it promises to hide complexity to the user of a class by defining a <strong>contract</strong> (i.e. the <strong>public</strong> members of the class) and hiding (by making <strong>private</strong>) all other information, such that the client can operate on this contract alone, and not have to worry about how this contract is implemented. I don&rsquo;t think this should be controversial.</p>
+<p>However&hellip;</p>
+<h2 id="implicit-data-dependencies-defeat-encapsulation">Implicit data dependencies defeat encapsulation</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-csharp" data-lang="csharp"><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyClass</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> Initialize()
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">int</span> Method1()
+
+obj = <span style="color:#66d9ef">new</span> MyClass()
+obj.Method1() <span style="color:#75715e">// throws because Initialize() was not yet called
+</span></code></pre></div><p><code>MyClass</code> offers a leaky abstraction. Presumably, <code>Method1</code> relies on data that has to be provided by <code>Initialize</code>; although the consumer does not see this directly, he is affected by it all the same. The example above makes the error obvious, but keep in mind one does not always have the class definition in front of his eyes; furthermore, conditional logic, especially spread across different methods, may create a hard-to-spot code path leading to this error. It may well go undetected for a long time before leading to an expensive problem in production.</p>
+<p>Temporal dependencies between methods (i.e. a method may do different things depending on what other method was called before) put the burden on the client to ensure the object is in the &ldquo;desired state&rdquo; before using it. Now the consumer has the worst of both worlds: having to manage the object&rsquo;s internal state, without direct visibility into this state, much less control.</p>
+<p>Refactoring to pure functions makes this error impossible:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-csharp" data-lang="csharp"><span style="color:#66d9ef">static</span> Data1 Initialize()
+
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> Function1(Data1 arg)
+</code></pre></div><p><code>Function1</code> cannot be called before <code>Initialize</code>, since it takes a <code>Data1</code> as a parameter, which only <code>Initialize</code> provides.
+In a statically typed language, the compiler would simply not let the programmer get this wrong. Even without static types, the fact that the contract states the dependency explicitely makes it hard to miss.</p>
+<h2 id="multi-threading-defeats-encapsulation">Multi-threading defeats encapsulation</h2>
+<p>It&rsquo;s fairly well known at this point that OOP makes multi-threaded programming difficult; sharing mutable objects between threads leads to data races. Locks attempt to address the problem by serializing access to this data; but this defeats the purpose of multi-threading which is to run things in <em>parallel</em>.</p>
+<p>Correct use of locks is difficult; errors lead to either more data races or deadlocks, which are some the trickiest problems to diagnose and fix.</p>
+<p>The fundamental issue is that our OO languages were designed with single-threaded execution in mind, and a class can only keep its internal state coherent when execution (across all its methods) is kept serial.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cs" data-lang="cs"><span style="color:#75715e">// What happens if I call this on multiple threads?
+</span><span style="color:#75715e"></span>myList.Add(<span style="color:#ae81ff">3</span>) 
+</code></pre></div><p>Refactoring to pure functions, as much as feasible, eliminates data races and lets us run them on however many threads are available.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fsharp" data-lang="fsharp">newList <span style="color:#f92672">=</span> List.add myList 3 <span style="color:#75715e">// This is obviously thread-safe
+</span></code></pre></div><p>Game programmers are familiar with <strong>shaders</strong>, small programs designed to run per-primitive (pixel, vertex, etc). Graphics cards run these on hundreds or thousands of small compute units. The reason they are massively parallelizable, enabling any game to leverage the power of a mini-supercomputer, is that a <strong>shader</strong> is a pure function.</p>
+<p>There is something to be said about the current popularity of single-threaded languages (Python, JavaScript), which has somewhat obscured this issue for many programmers. This is a nice side-effect, for sure, but simply ignoring the multi-core nature of modern processors will only get us so far. In the meantime, our cores are sitting idle and our users are waiting.</p>
+
+		</section>
+
+		<div class="post-tags">
+			
+			
+			<nav class="nav tags">
+				<ul class="tags">
+					
+					<li><a href="/tags/code">code</a></li>
+					
+				</ul>
+			</nav>
+			
+			
+		</div>
+	</article>
+</main>
+<footer>
+<hr>⚡️
+	2020  <a href="https://github.com/athul/archie">Archie Theme</a> | Built with <a href="https://gohugo.io">Hugo</a>
+</footer>
+
+
+</div>
+    </body>
+</html>

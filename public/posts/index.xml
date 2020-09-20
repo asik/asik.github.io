@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on Asik Blog</title>
+    <link>http://example.org/posts/</link>
+    <description>Recent content in Posts on Asik Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 18 Sep 2020 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>So what is functional programming anyway?</title>
+      <link>http://example.org/posts/so-what-is-functional-programming-anyway/</link>
+      <pubDate>Fri, 18 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>http://example.org/posts/so-what-is-functional-programming-anyway/</guid>
+      <description>Programming with functions Functional programming, as the name implies, is programming with functions. Not classes, not objects, not any other abstraction, just functions.
+Programming with functions is liberating. Functions are much simpler than objects. They can&amp;rsquo;t be abstract, they don&amp;rsquo;t have constructors, destructors, base classes, virtual methods, a this keyword (well&amp;hellip; except if you&amp;rsquo;re JavaScript, then functions do have a this keyword, and it&amp;rsquo;s weird), a super keyword, etc. Here&amp;rsquo;s one.</description>
+    </item>
+    
+    <item>
+      <title>Why encapsulation fails</title>
+      <link>http://example.org/posts/real-world-problems-with-oo/</link>
+      <pubDate>Tue, 15 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>http://example.org/posts/real-world-problems-with-oo/</guid>
+      <description>One promise of OOP is encapsulation. In its simplest definition, encapsulation is restricting access to an object&amp;rsquo;s internal state. Encapsulation promises more than this: it promises to hide complexity to the user of a class by defining a contract (i.e. the public members of the class) and hiding (by making private) all other information, such that the client can operate on this contract alone, and not have to worry about how this contract is implemented.</description>
+    </item>
+    
+  </channel>
+</rss>
